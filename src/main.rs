@@ -3,12 +3,12 @@ use font_kit::{
     family_name::FamilyName,
     handle::Handle,
     properties::{Properties, Style},
-    source::{Source, SystemSource},
+    source::{SystemSource},
 };
 use genpdf::{
-    elements::{self, FrameCellDecorator, Paragraph, TableLayout},
+    elements::{FrameCellDecorator, Paragraph, TableLayout, Text},
     fonts::{FontData, FontFamily},
-    Element, Mm,
+    Mm, Document, SimplePageDecorator, Margins, Size,
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,16 +18,16 @@ fn in_to_mm(inches: f32) -> Mm {
 
 fn generate_pdf(font_family: FontFamily<FontData>, layout: PageLayout) {
     // Create a document and set the default font family
-    let mut doc = genpdf::Document::new(font_family);
+    let mut doc = Document::new(font_family);
     // Change the default settings
     doc.set_title("Generated Document");
-    doc.set_paper_size(genpdf::Size::new(
+    doc.set_paper_size(Size::new(
         in_to_mm(layout.width),
         in_to_mm(layout.height),
     ));
-    let mut decorator = genpdf::SimplePageDecorator::new();
+    let mut decorator = SimplePageDecorator::new();
 
-    decorator.set_margins(genpdf::Margins::trbl(
+    decorator.set_margins(Margins::trbl(
         in_to_mm(layout.margin.top),
         in_to_mm(layout.margin.right),
         in_to_mm(layout.margin.bottom),
@@ -36,9 +36,8 @@ fn generate_pdf(font_family: FontFamily<FontData>, layout: PageLayout) {
 
     doc.set_page_decorator(decorator);
 
-    // Add one or more elements
-    let styled_text = genpdf::elements::StyledElement::new(
-        genpdf::elements::Text::new("Hello World!"),
+    let _styled_text = genpdf::elements::StyledElement::new(
+        Text::new("Hello World!"),
         genpdf::style::Style::new().with_font_size(25),
     );
 
@@ -118,10 +117,14 @@ const PAGE_LAYOUT: PageLayout = PageLayout {
 
 fn font_handle_to_font_data(font_handle: &Handle) -> FontData {
     match font_handle {
-        Handle::Path { path, font_index: _} => return FontData::load(&path, None).unwrap(),
-        Handle::Memory { bytes, font_index: _} => {
-            return FontData::new(bytes.to_vec(), None).unwrap()
-        }
+        Handle::Path {
+            path,
+            font_index: _,
+        } => return FontData::load(&path, None).unwrap(),
+        Handle::Memory {
+            bytes,
+            font_index: _,
+        } => return FontData::new(bytes.to_vec(), None).unwrap(),
     }
 }
 
